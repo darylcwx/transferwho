@@ -10,27 +10,21 @@ import Person from "./components/person";
 import Receipt from "./components/receipt";
 
 export default function App() {
-  const [people, setPeople] = useState([
-    { id: 1, name: "" },
-    { id: 2, name: "" },
-  ]);
-  const [key, setKey] = useState("Receipt 1");
-  const [receipts, setReceipts] = useState([
-    { id: 1, title: "Receipt 1", content: "Content for 1" },
-    { id: 2, title: "Receipt 2", content: "Content for 2" },
-  ]);
-
   const copyToClipboard = () => {
     const site = "https://transferwho.vercel.app/";
     navigator.clipboard.writeText(site);
     alert("Copied!");
   };
+  const [key, setKey] = useState("1");
 
+  const [people, setPeople] = useState([
+    { id: 1, name: "" },
+    { id: 2, name: "" },
+  ]);
   const addPerson = () => {
     const newPerson = { id: Date.now(), name: "" };
     setPeople((currentPeople) => [...currentPeople, newPerson]);
   };
-
   const changePerson = (id: number, newName: string) => {
     setPeople((currentPeople) =>
       currentPeople.map((person) =>
@@ -44,11 +38,13 @@ export default function App() {
     );
   };
 
-  // const addReceipt = () => {
-  //   const newReceipt = { id: Date.now() };
-  //   setReceipts((currentReceipts) => [...currentReceipts, newReceipt]);
-  // };
-
+  const [receipts, setReceipts] = useState([{ id: 1 }]);
+  const addReceipt = () => {
+    const lastReceipt = receipts[receipts.length - 1]
+    const newReceipt = { id: lastReceipt.id + 1 };
+    setReceipts((currentReceipts) => [...currentReceipts, newReceipt]);
+    setKey((receipts.length - 1).toString());
+  };
   const deleteReceipt = (id: number) => {
     setReceipts((currentReceipts) =>
       currentReceipts.filter((receipt) => receipt.id !== id)
@@ -56,7 +52,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    console.log(receipts);
+    //console.log(receipts);
   }, []);
   return (
     <>
@@ -153,21 +149,23 @@ export default function App() {
             <Accordion.Item eventKey="1">
               <Accordion.Header>Receipts</Accordion.Header>
               <Accordion.Body>
-                <Tabs
-                  defaultActiveKey="Receipt 1"
-                  className=""
-                  activeKey={key}
-                  onSelect={(k) => setKey(k || "")}>
+                <p>
+                  Please enter all items and their prices before service charge
+                  and GST, <span className="font-medium">for each receipt</span>
+                  .
+                </p>
+                <Tabs className="" activeKey={key} onSelect={(k) => setKey(k)}>
                   {receipts.map((receipt) => (
-                    <Receipt
-                      key={receipt.id}
-                      id={receipt.id}
-                      title={receipt.title}
-                      content={receipt.content}
-                      //onDelete={deleteReceipt}
-                    />
+                    <Tab eventKey={receipt.id} title={receipt.id}>
+                      <Receipt id={receipt.id} onDelete={deleteReceipt} />
+                    </Tab>
                   ))}
-                  <Tab eventKey="new" title="+"></Tab>
+                  <Tab
+                    eventKey="new"
+                    style={{ padding: "0" }}
+                    title={
+                      <i className="bi bi-plus-lg" onClick={addReceipt} />
+                    }></Tab>
                 </Tabs>
               </Accordion.Body>
             </Accordion.Item>
