@@ -18,6 +18,34 @@ type ReceiptProps = {
 
 const Receipt = ({ id, onChange, onDelete }: ReceiptProps) => {
   const [items, setItems] = useState([{ id: 1, name: "", price: 0 }]);
+  const [subtotal, setSubtotal] = useState(0);
+  const [serviceChargeBoolean, setServiceChargeBoolean] = useState(true);
+  const [serviceCharge, setServiceCharge] = useState(0);
+  const [gstBoolean, setGSTBoolean] = useState(true);
+  const [gst, setGST] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
+
+  useEffect(() => {
+    const newSubtotal = parseFloat(
+      items.reduce((sum, item) => sum + item.price * 100, 0).toFixed(2)
+    );
+
+    let newServiceCharge = 0;
+    if (serviceChargeBoolean) {
+      newServiceCharge = Math.round(newSubtotal * 0.1);
+    }
+
+    let newGST = 0;
+    if (gstBoolean) {
+      newGST = Math.round(newSubtotal * 0.09);
+    }
+    const newGrandTotal = newSubtotal + newServiceCharge + newGST;
+
+    setSubtotal(newSubtotal / 100);
+    setServiceCharge(newServiceCharge / 100);
+    setGST(newGST / 100);
+    setGrandTotal(newGrandTotal / 100);
+  }, [items, serviceChargeBoolean, gstBoolean]);
 
   const handleDeleteReceipt = () => {
     onDelete(id);
@@ -99,6 +127,99 @@ const Receipt = ({ id, onChange, onDelete }: ReceiptProps) => {
       <div className="flex justify-end">
         <Button onClick={handleAddItem}>Add item</Button>
         <Button onClick={test}>test</Button>
+      </div>
+      {/* SECTION - Subtotal, Service Charge, GST, Grand Total */}
+      <div className="py-4">
+        <div>
+          <Row className="">
+            <Col
+              xs="6"
+              sm="7"
+              md="8"
+              lg="9"
+              className="h-10 flex items-center justify-end">
+              Subtotal
+            </Col>
+            <Col className="h-10">
+              <InputGroup className="mb-3">
+                <InputGroup.Text>$</InputGroup.Text>
+                <Form.Control
+                  type="number"
+                  placeholder="0.00"
+                  value={subtotal.toString()}
+                  disabled
+                />
+              </InputGroup>
+            </Col>
+          </Row>
+          <Row className="">
+            <Col xs="6" sm="7" md="8" lg="9" className="h-10">
+              <InputGroup className="flex justify-end">
+                <InputGroup.Text>10% SVC</InputGroup.Text>
+                <InputGroup.Checkbox
+                  checked={serviceChargeBoolean}
+                  onChange={(e) =>
+                    setServiceChargeBoolean(!serviceChargeBoolean)
+                  }
+                />
+              </InputGroup>
+            </Col>
+            <Col className="h-10">
+              <InputGroup className="mb-3">
+                <InputGroup.Text>$</InputGroup.Text>
+                <Form.Control
+                  type="number"
+                  placeholder="0.00"
+                  value={serviceCharge}
+                  disabled
+                />
+              </InputGroup>
+            </Col>
+          </Row>
+          <Row className="">
+            <Col xs="6" sm="7" md="8" lg="9" className="h-10">
+              <InputGroup className="flex justify-end">
+                <InputGroup.Text>9% GST</InputGroup.Text>
+                <InputGroup.Checkbox
+                  checked={gstBoolean}
+                  onChange={(e) => setGSTBoolean(!gstBoolean)}
+                />
+              </InputGroup>
+            </Col>
+            <Col className="h-10">
+              <InputGroup className="mb-3">
+                <InputGroup.Text>$</InputGroup.Text>
+                <Form.Control
+                  type="number"
+                  placeholder="0.00"
+                  value={gst}
+                  disabled
+                />
+              </InputGroup>
+            </Col>
+          </Row>
+          <Row className="">
+            <Col
+              xs="6"
+              sm="7"
+              md="8"
+              lg="9"
+              className="h-10 flex items-center justify-end">
+              <div className="">Grand Total</div>
+            </Col>
+            <Col className="h-10">
+              <InputGroup className="mb-3">
+                <InputGroup.Text>$</InputGroup.Text>
+                <Form.Control
+                  type="number"
+                  placeholder="0.00"
+                  value={grandTotal}
+                  disabled
+                />
+              </InputGroup>
+            </Col>
+          </Row>
+        </div>
       </div>
     </>
   );
