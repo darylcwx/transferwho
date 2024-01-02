@@ -5,6 +5,7 @@ import Accordion from "react-bootstrap/Accordion";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import Button from "react-bootstrap/Button";
+import Table from "react-bootstrap/Table";
 
 import Person from "./components/person";
 import Receipt from "./components/receipt";
@@ -17,6 +18,7 @@ export default function App() {
   };
   const [key, setKey] = useState("1");
 
+  //SECTION - People
   const [people, setPeople] = useState([
     { id: 1, name: "" },
     { id: 2, name: "" },
@@ -38,12 +40,22 @@ export default function App() {
     );
   };
 
-  const [receipts, setReceipts] = useState([{ id: 1 }]);
+  //SECTION - Receipt
+  const [receipts, setReceipts] = useState([
+    { id: 1, items: [] as Array<object> },
+  ]);
   const addReceipt = () => {
-    const lastReceipt = receipts[receipts.length - 1]
-    const newReceipt = { id: lastReceipt.id + 1 };
+    const lastReceipt = receipts[receipts.length - 1];
+    const newReceipt = { id: lastReceipt.id + 1, items: [] };
     setReceipts((currentReceipts) => [...currentReceipts, newReceipt]);
     setKey((receipts.length - 1).toString());
+  };
+  const changeReceipt = (id: number, items: Array<object>) => {
+    console.log("id: " + id, "items: " + items);
+    const newReceipts = receipts.map((receipt) =>
+      receipt.id === id ? { ...receipt, items: items } : receipt
+    );
+    setReceipts(newReceipts);
   };
   const deleteReceipt = (id: number) => {
     setReceipts((currentReceipts) =>
@@ -51,21 +63,28 @@ export default function App() {
     );
   };
 
-  useEffect(() => {
-    //console.log(receipts);
-  }, []);
+  //SECTION - Receipt
+  const [results, setResults] = useState([
+    { name: "Jason", share: 15.4, transfer: "15.40 to Dar" },
+    { name: "Jada", share: 10.4, transfer: "10.40 to Dar" },
+    { name: "Daryl", share: 60.4, transfer: "" },
+  ]);
+
+  const test = () => {
+    console.log(receipts);
+  };
   return (
     <>
       <div className="bg-gray-800 min-h-screen">
         <div className="container text-white">
           <div className="py-2">
             <h1 className="">Hello, world!</h1>
-            <p className="">
+            <div className="mb-3">
               Are you the person always paying the bill first? Or do your
               friends pay different bills and y'all need to see who owes who how
               much? Looks no further!
-            </p>
-            <p className="">
+            </div>
+            <div className="mb-3">
               Works best if one person paid for everything first. Or just settle
               your own receipt and send your friends{" "}
               <OverlayTrigger
@@ -84,8 +103,8 @@ export default function App() {
                 </a>
               </OverlayTrigger>
               . 👀
-            </p>
-            <p className="">
+            </div>
+            <div className="mb-3">
               <div>
                 <i className="bi bi-1-circle-fill" />
                 <span> Fill in all names of people</span>
@@ -101,8 +120,8 @@ export default function App() {
                 <i className="bi bi-3-circle-fill" />
                 <span> See results and profit!!</span>
               </div>
-            </p>
-            <p>
+            </div>
+            <div className="mb-3">
               Optical Character Recognition (OCR) has been implemented. However,
               I haven't tested with enough receipts. Feel free to send me
               feedback via Telegram{" "}
@@ -114,9 +133,9 @@ export default function App() {
                 @damnsope
               </a>
               .
-            </p>
+            </div>
           </div>
-          <Accordion defaultActiveKey="0">
+          <Accordion defaultActiveKey="0" alwaysOpen>
             <Accordion.Item eventKey="0">
               <Accordion.Header>
                 <span className="pr-1">People</span>
@@ -154,10 +173,18 @@ export default function App() {
                   and GST, <span className="font-medium">for each receipt</span>
                   .
                 </p>
-                <Tabs className="" activeKey={key} onSelect={(k) => setKey(k)}>
-                  {receipts.map((receipt) => (
-                    <Tab eventKey={receipt.id} title={receipt.id}>
-                      <Receipt id={receipt.id} onDelete={deleteReceipt} />
+                <Tabs
+                  className=""
+                  activeKey={key}
+                  onSelect={(k) => setKey(k || "")}>
+                  {receipts.map((receipt, index) => (
+                    <Tab eventKey={index} title={receipt.id} key={index}>
+                      <Receipt
+                        key={receipt.id}
+                        id={receipt.id}
+                        onChange={changeReceipt}
+                        onDelete={deleteReceipt}
+                      />
                     </Tab>
                   ))}
                   <Tab
@@ -171,7 +198,30 @@ export default function App() {
             </Accordion.Item>
             <Accordion.Item eventKey="2">
               <Accordion.Header>Results</Accordion.Header>
-              <Accordion.Body>results go here</Accordion.Body>
+              <Accordion.Body>
+                <Table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Share</th>
+                      <th>Transfer</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {results &&
+                      results.map((result, index) => (
+                        <tr key={index}>
+                          <td>{result.name}</td>
+                          <td>{result.share}</td>
+                          <td>{result.transfer}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </Table>
+                <div className="flex justify-end">
+                  <Button onClick={test}>test</Button>
+                </div>
+              </Accordion.Body>
             </Accordion.Item>
           </Accordion>
         </div>
