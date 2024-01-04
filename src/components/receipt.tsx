@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
+import Table from "react-bootstrap/Table";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 
@@ -10,20 +11,31 @@ interface Items {
   name: string;
   price: number;
 }
+
+interface Person {
+  id: number;
+  name: string;
+}
+
 type ReceiptProps = {
   id: number;
+  people: Person[];
   onChange: (id: number, items: Items[]) => void;
   onDelete: (id: number) => void;
 };
 
-const Receipt = ({ id, onChange, onDelete }: ReceiptProps) => {
-  const [items, setItems] = useState([{ id: 1, name: "", price: 0 }]);
+const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
+  const [items, setItems] = useState([
+    { id: 1, name: "hahn 1", price: 33.36 },
+    { id: 2, name: "gf ao", price: 10.8 },
+  ]);
   const [subtotal, setSubtotal] = useState(0);
   const [serviceChargeBoolean, setServiceChargeBoolean] = useState(true);
   const [serviceCharge, setServiceCharge] = useState(0);
   const [gstBoolean, setGSTBoolean] = useState(true);
   const [gst, setGST] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
+  const [participation, setParticipation] = useState({});
 
   useEffect(() => {
     const newSubtotal = parseFloat(
@@ -37,7 +49,7 @@ const Receipt = ({ id, onChange, onDelete }: ReceiptProps) => {
 
     let newGST = 0;
     if (gstBoolean) {
-      newGST = Math.round(newSubtotal * 0.09);
+      newGST = Math.round((newSubtotal + newServiceCharge) * 0.09);
     }
     const newGrandTotal = newSubtotal + newServiceCharge + newGST;
 
@@ -47,12 +59,15 @@ const Receipt = ({ id, onChange, onDelete }: ReceiptProps) => {
     setGrandTotal(newGrandTotal / 100);
   }, [items, serviceChargeBoolean, gstBoolean]);
 
+  //SECTION - Receipt
   const handleDeleteReceipt = () => {
     onDelete(id);
   };
   const handleChangeReceipt = (items: Items[]) => {
     onChange(id, items);
   };
+
+  //SECTION - Items
   const handleAddItem = () => {
     const newItem = { id: Date.now(), name: "", price: 0 };
     setItems((currentItems) => [...currentItems, newItem]);
@@ -74,9 +89,45 @@ const Receipt = ({ id, onChange, onDelete }: ReceiptProps) => {
   const handleDeleteItem = (id: number, e: React.MouseEvent) => {
     setItems((currentItems) => currentItems.filter((item) => item.id !== id));
   };
+
+  //SECTION - Participation
+  useEffect(() => {
+    const currentParticipation = { ...participation } as {
+      [key: string]: Array<string>;
+    };
+    for (let i = 0; i < people.length; i++) {
+      const person = people[i].name;
+      const personItems = [];
+      for (let j = 0; j < items.length; j++) {
+        personItems.push(items[j].name);
+      }
+      console.log(personItems);
+      currentParticipation[person] = personItems;
+    }
+    setParticipation(currentParticipation);
+  }, [people, items]);
+
+  const handleCheck = (personName: string, itemName: string) => {
+    const currentParticipation = { ...participation } as {
+      [key: string]: Array<string>;
+    };
+    const index = currentParticipation[personName].indexOf(itemName);
+    if (index !== -1) {
+      currentParticipation[personName].splice(index, 1);
+    } else {
+      currentParticipation[personName].push(itemName);
+    }
+    console.log(currentParticipation);
+    setParticipation(currentParticipation);
+  };
+
   const test = () => {
     console.log(items);
   };
+
+  useEffect(() => {
+    //console.log(people);
+  });
   return (
     <>
       <div className="flex justify-end py-6">
@@ -220,6 +271,43 @@ const Receipt = ({ id, onChange, onDelete }: ReceiptProps) => {
             </Col>
           </Row>
         </div>
+      </div>
+
+      {/* SECTION - Participation */}
+      <div className="">
+        <h3 className="">Participation</h3>
+        <Table>
+          <thead>
+            <tr>
+              <th className="font-semibold">Name</th>
+              {items.map((item, index) => (
+                <th key={index} className="font-semibold">
+                  {item.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {people.map((person, index) => (
+              <tr key={index}>
+                <td>{person.name}</td>
+                {items.map(
+                  (item, index) =>
+                    item.name && (
+                      <td key={index}>
+                        <Form.Check
+                          type="checkbox"
+                          id={person.id.toString() + item.id.toString()}
+                          defaultChecked
+                          onChange={(e) => handleCheck(person.name, item.name)}
+                        />
+                      </td>
+                    )
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       </div>
     </>
   );

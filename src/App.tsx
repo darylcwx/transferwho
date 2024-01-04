@@ -10,6 +10,11 @@ import Table from "react-bootstrap/Table";
 import Person from "./components/person";
 import Receipt from "./components/receipt";
 
+interface Person {
+  id: number;
+  name: string;
+}
+
 export default function App() {
   const copyToClipboard = () => {
     const site = "https://transferwho.vercel.app/";
@@ -19,9 +24,10 @@ export default function App() {
   const [key, setKey] = useState(1);
 
   //SECTION - People
-  const [people, setPeople] = useState([
-    { id: 1, name: "" },
-    { id: 2, name: "" },
+  const [people, setPeople] = useState<Person[]>([
+    { id: 1, name: "dar" },
+    { id: 2, name: "ray" },
+    { id: 3, name: "ash" },
   ]);
   const addPerson = () => {
     const newPerson = { id: Date.now(), name: "" };
@@ -63,7 +69,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    console.log(receipts);
+    //console.log(receipts);
   }, [receipts]);
 
   //SECTION - Results
@@ -146,10 +152,11 @@ export default function App() {
               </Accordion.Header>
               <Accordion.Body>
                 <p>Please enter the names of all involved.</p>
-                {people.map((person) => (
+                {people.map((person, index) => (
                   <Person
-                    key={person.id}
+                    key={index}
                     id={person.id}
+                    name={person.name}
                     onChange={changePerson}
                     onDelete={deletePerson}
                   />
@@ -193,6 +200,7 @@ export default function App() {
                         id={receipt.id}
                         onChange={changeReceipt}
                         onDelete={deleteReceipt}
+                        people={people}
                       />
                     </Tab>
                   ))}

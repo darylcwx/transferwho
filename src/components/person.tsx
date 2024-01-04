@@ -5,16 +5,14 @@ import InputGroup from "react-bootstrap/InputGroup";
 
 type PersonProps = {
   id: number;
+  name: string;
   onChange: (id: number, newName: string) => void;
   onDelete: (id: number) => void;
 };
 
-const Person = ({ id, onChange, onDelete }: PersonProps) => {
-  const [name, setName] = useState("");
-
+const Person = ({ id, name, onChange, onDelete }: PersonProps) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
-    setName(newName);
     onChange(id, newName);
   };
   const handleDelete = () => {
