@@ -73,7 +73,6 @@ const Receipt = ({ id, onChange, onDelete }: ReceiptProps) => {
   };
   const handleDeleteItem = (id: number, e: React.MouseEvent) => {
     setItems((currentItems) => currentItems.filter((item) => item.id !== id));
-    console.log("delete item");
   };
   const test = () => {
     console.log(items);
@@ -107,6 +106,7 @@ const Receipt = ({ id, onChange, onDelete }: ReceiptProps) => {
                     type="number"
                     placeholder="0.00"
                     step="0.01"
+                    min="0"
                     value={item.price || ""}
                     onChange={(e) =>
                       handleChangeItemPrice(item.id, e.target.value)

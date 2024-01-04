@@ -16,7 +16,7 @@ export default function App() {
     navigator.clipboard.writeText(site);
     alert("Copied!");
   };
-  const [key, setKey] = useState("1");
+  const [key, setKey] = useState(1);
 
   //SECTION - People
   const [people, setPeople] = useState([
@@ -48,10 +48,9 @@ export default function App() {
     const lastReceipt = receipts[receipts.length - 1];
     const newReceipt = { id: lastReceipt.id + 1, items: [] };
     setReceipts((currentReceipts) => [...currentReceipts, newReceipt]);
-    setKey((receipts.length - 1).toString());
+    setKey(lastReceipt.id);
   };
   const changeReceipt = (id: number, items: Array<object>) => {
-    console.log("id: " + id, "items: " + items);
     const newReceipts = receipts.map((receipt) =>
       receipt.id === id ? { ...receipt, items: items } : receipt
     );
@@ -63,7 +62,11 @@ export default function App() {
     );
   };
 
-  //SECTION - Receipt
+  useEffect(() => {
+    console.log(receipts);
+  }, [receipts]);
+
+  //SECTION - Results
   const [results, setResults] = useState([
     { name: "Jason", share: 15.4, transfer: "15.40 to Dar" },
     { name: "Jada", share: 10.4, transfer: "10.40 to Dar" },
@@ -168,17 +171,23 @@ export default function App() {
             <Accordion.Item eventKey="1">
               <Accordion.Header>Receipts</Accordion.Header>
               <Accordion.Body>
-                <p>
+                <div className="pb-2">
                   Please enter all items and their prices before service charge
                   and GST, <span className="font-medium">for each receipt</span>
                   .
-                </p>
+                </div>
+                <div className="pb-4">
+                  <Button className="w-full" onClick={addReceipt}>
+                    New receipt
+                  </Button>
+                </div>
                 <Tabs
                   className=""
                   activeKey={key}
-                  onSelect={(k) => setKey(k || "")}>
+                  defaultActiveKey={1}
+                  onSelect={(k) => setKey(k ? parseInt(k) : 0)}>
                   {receipts.map((receipt, index) => (
-                    <Tab eventKey={index} title={receipt.id} key={index}>
+                    <Tab eventKey={receipt.id} title={receipt.id} key={index}>
                       <Receipt
                         key={receipt.id}
                         id={receipt.id}
@@ -187,12 +196,6 @@ export default function App() {
                       />
                     </Tab>
                   ))}
-                  <Tab
-                    eventKey="new"
-                    style={{ padding: "0" }}
-                    title={
-                      <i className="bi bi-plus-lg" onClick={addReceipt} />
-                    }></Tab>
                 </Tabs>
               </Accordion.Body>
             </Accordion.Item>
