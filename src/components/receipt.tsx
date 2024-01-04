@@ -26,7 +26,11 @@ type ReceiptProps = {
     id: number,
     items: Items[],
     personPaidFirst: Person,
-    participation: Participation
+    participation: Participation,
+    serviceCharge: boolean,
+    gst: boolean,
+    subtotal: number,
+    grandTotal: number
   ) => void;
   onDelete: (id: number) => void;
 };
@@ -37,9 +41,10 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
     { id: 2, name: "gf ao", price: 10.8 },
   ]);
   const [subtotal, setSubtotal] = useState(0);
-  const [serviceChargeBoolean, setServiceChargeBoolean] = useState(true);
+  const [serviceChargeBoolean, setServiceChargeBoolean] =
+    useState<boolean>(true);
   const [serviceCharge, setServiceCharge] = useState(0);
-  const [gstBoolean, setGSTBoolean] = useState(true);
+  const [gstBoolean, setGSTBoolean] = useState<boolean>(true);
   const [gst, setGST] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
   const [personPaidFirst, setPersonPaidFirst] = useState<Person>();
@@ -61,11 +66,19 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
       newGST = Math.round((newSubtotal + newServiceCharge) * 0.09);
     }
     const newGrandTotal = newSubtotal + newServiceCharge + newGST;
-
     setSubtotal(newSubtotal / 100);
     setServiceCharge(newServiceCharge / 100);
     setGST(newGST / 100);
     setGrandTotal(newGrandTotal / 100);
+    handleChangeReceipt(
+      items,
+      personPaidFirst as Person,
+      participation,
+      serviceChargeBoolean,
+      gstBoolean,
+      newSubtotal / 100,
+      newGrandTotal / 100
+    );
   }, [items, serviceChargeBoolean, gstBoolean]);
 
   //SECTION - Receipt
@@ -79,9 +92,22 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
   const handleChangeReceipt = (
     items: Items[],
     personPaidFirst: Person,
-    participation: Participation
+    participation: Participation,
+    serviceCharge: boolean,
+    gst: boolean,
+    subtotal: number,
+    grandTotal: number
   ) => {
-    onChange(id, items, personPaidFirst, participation);
+    onChange(
+      id,
+      items,
+      personPaidFirst,
+      participation,
+      serviceCharge,
+      gst,
+      subtotal,
+      grandTotal
+    );
   };
 
   //SECTION - Items
@@ -94,14 +120,12 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
       item.id === id ? { ...item, name: newItemName } : item
     );
     setItems(newItems);
-    handleChangeReceipt(newItems, personPaidFirst as Person, participation);
   };
   const handleChangeItemPrice = (id: number, newItemPrice: string) => {
     const newItems = items.map((item) =>
       item.id === id ? { ...item, price: parseFloat(newItemPrice) } : item
     );
     setItems(newItems);
-    handleChangeReceipt(newItems, personPaidFirst as Person, participation);
   };
   const handleDeleteItem = (id: number, e: React.MouseEvent) => {
     setItems((currentItems) => currentItems.filter((item) => item.id !== id));
@@ -119,7 +143,15 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
       personPaidFirstObject = { id: 1, name: "not found" };
     }
     setPersonPaidFirst(personPaidFirstObject);
-    handleChangeReceipt(items, personPaidFirstObject, participation);
+    handleChangeReceipt(
+      items,
+      personPaidFirstObject,
+      participation,
+      serviceChargeBoolean,
+      gstBoolean,
+      subtotal,
+      grandTotal
+    );
   };
 
   //SECTION - Participation
@@ -149,7 +181,15 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
       currentParticipation[personName].push(itemName);
     }
     setParticipation(currentParticipation);
-    handleChangeReceipt(items, personPaidFirst as Person, currentParticipation);
+    handleChangeReceipt(
+      items,
+      personPaidFirst as Person,
+      currentParticipation,
+      serviceChargeBoolean,
+      gstBoolean,
+      subtotal,
+      grandTotal
+    );
   };
 
   return (
@@ -256,9 +296,7 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
                 <InputGroup.Text>10% SVC</InputGroup.Text>
                 <InputGroup.Checkbox
                   checked={serviceChargeBoolean}
-                  onChange={(e) =>
-                    setServiceChargeBoolean(!serviceChargeBoolean)
-                  }
+                  onChange={(e) => setServiceChargeBoolean(e.target.checked)}
                 />
               </InputGroup>
             </Col>
@@ -280,7 +318,7 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
                 <InputGroup.Text>9% GST</InputGroup.Text>
                 <InputGroup.Checkbox
                   checked={gstBoolean}
-                  onChange={(e) => setGSTBoolean(!gstBoolean)}
+                  onChange={(e) => setGSTBoolean(e.target.checked)}
                 />
               </InputGroup>
             </Col>
@@ -322,12 +360,10 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
       <hr className="border-2" />
       {/* SECTION - Paid first */}
       <div className="">
-        <p>
-          <h3 className="">Who paid first?</h3>
-          <div className="">
-            Select the <span className="line-through">sugar daddy</span> person
-            who paid first.
-          </div>
+        <h3 className="">Who paid first?</h3>
+        <p className="">
+          Select the <span className="line-through">sugar daddy</span> person
+          who paid first.
         </p>
         <Form.Select
           className=""

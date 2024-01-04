@@ -22,6 +22,16 @@ interface Items {
 interface Participation {
   [key: string]: Array<string>;
 }
+interface Receipt {
+  id: number;
+  items: Items[];
+  personPaidFirst?: Person;
+  participation?: Participation;
+  serviceCharge?: boolean;
+  gst?: boolean;
+  subtotal?: number;
+  grandTotal?: number;
+}
 
 export default function App() {
   const copyToClipboard = () => {
@@ -55,17 +65,22 @@ export default function App() {
   };
 
   //SECTION - Receipt
-  const [receipts, setReceipts] = useState([
-    { id: 1, items: [] as Array<object> },
+  const [receipts, setReceipts] = useState<Receipt[]>([
+    { id: 1, items: [], serviceCharge: true, gst: true },
   ]);
+  const [overallTotal, setOverallTotal] = useState("");
   const addReceipt = () => {
     const newReceiptID =
       receipts.length === 0 ? 1 : receipts[receipts.length - 1].id + 1;
-    const newReceipt = {
+    const newReceipt: Receipt = {
       id: newReceiptID,
       items: [],
       personPaidFirst: undefined,
       participation: undefined,
+      serviceCharge: true,
+      gst: true,
+      subtotal: 0,
+      grandTotal: 0,
     };
     setReceipts((currentReceipts) => [...currentReceipts, newReceipt]);
     setKey(newReceiptID);
@@ -74,7 +89,11 @@ export default function App() {
     id: number,
     items: Items[],
     personPaidFirst: Person,
-    participation: Participation
+    participation: Participation,
+    serviceCharge: boolean,
+    gst: boolean,
+    subtotal: number,
+    grandTotal: number
   ) => {
     const newReceipts = receipts.map((receipt) =>
       receipt.id === id
@@ -83,6 +102,10 @@ export default function App() {
             items: items,
             personPaidFirst: personPaidFirst,
             participation: participation,
+            serviceCharge: serviceCharge,
+            gst: gst,
+            subtotal: subtotal,
+            grandTotal: grandTotal,
           }
         : receipt
     );
@@ -96,15 +119,87 @@ export default function App() {
   };
 
   useEffect(() => {
-    //console.log(receipts);
+    let total = 0;
+    let peoplePaidFirst: { [key: string]: number } = {};
+    for (const receipt of receipts) {
+      if (receipt.grandTotal !== undefined) {
+        total += receipt.grandTotal;
+      }
+      if (receipt.personPaidFirst !== undefined) {
+        const name = receipt.personPaidFirst.name;
+        if (name in peoplePaidFirst) {
+          peoplePaidFirst[name] += receipt.grandTotal ?? 0;
+        } else {
+          peoplePaidFirst[name] = receipt.grandTotal ?? 0;
+        }
+      }
+    }
+    setOverallTotal(total.toFixed(2));
+
+    const personsPerItem: { [key: string]: number } = {};
+    const itemPricePerPerson: { [key: string]: number } = {};
+    for (const receipt of receipts) {
+      for (const item of receipt.items) {
+        let count = 0;
+        for (const participant in receipt.participation) {
+          if (receipt.participation[participant].includes(item.name)) {
+            count++;
+          }
+        }
+        personsPerItem[item.name] = count;
+        let itemPrice = item.price * 100;
+        if (receipt.serviceCharge) itemPrice = Math.round(itemPrice * 1.1);
+        if (receipt.gst) itemPrice = Math.round(itemPrice * 1.09);
+        itemPricePerPerson[item.name] =
+          Math.round(itemPrice / personsPerItem[item.name]) / 100;
+      }
+    }
+
+    const overallParticipation: { [key: string]: string[] } = {};
+    for (const receipt of receipts) {
+      for (const participant in receipt.participation) {
+        const items = receipt.participation[participant];
+        if (overallParticipation[participant]) {
+          overallParticipation[participant] =
+            overallParticipation[participant].concat(items);
+        } else {
+          overallParticipation[participant] = items;
+        }
+      }
+    }
+    const temp = [];
+    for (const participant in overallParticipation) {
+      let amount = 0;
+      const participantItems = overallParticipation[participant];
+      for (const item of participantItems) {
+        amount += itemPricePerPerson[item];
+      }
+      const personObject = {
+        name: participant,
+        share: Math.round(amount * 100) / 100,
+        transfer: undefined as number | undefined,
+      };
+      temp.push(personObject);
+    }
+    const netTransfers: { [key: string]: number } = {};
+    for (const person in peoplePaidFirst) {
+      netTransfers[person] = -peoplePaidFirst[person];
+    }
+    for (const person of temp) {
+      if (person.name in netTransfers) {
+        person.transfer =
+          Math.round((person.share + netTransfers[person.name]) * 100) / 100;
+      } else {
+        person.transfer = person.share;
+      }
+    }
+    console.log(receipts);
+    console.log(temp);
+    setResults(temp);
   }, [receipts]);
 
   //SECTION - Results
-  const [results, setResults] = useState([
-    { name: "Jason", share: 15.4, transfer: "15.40 to Dar" },
-    { name: "Jada", share: 10.4, transfer: "10.40 to Dar" },
-    { name: "Daryl", share: 60.4, transfer: "" },
-  ]);
+  const [results, setResults] = useState<Array<any>>([]);
 
   const test = () => {
     console.log(receipts);
@@ -196,17 +291,17 @@ export default function App() {
             <Accordion.Item eventKey="1">
               <Accordion.Header>Receipts</Accordion.Header>
               <Accordion.Body>
-                <p className="">
-                  <div>
+                <div className="pb-3">
+                  <p>
                     Please enter all items and their prices before service
                     charge and GST,{" "}
                     <span className="font-medium">for each receipt</span>.
-                  </div>
+                  </p>
                   <small className="opacity-75">
                     Do note that GST of 9% is taxable on both subtotal and
                     service charge.
                   </small>
-                </p>
+                </div>
                 <div className="pb-3">
                   <Button className="w-full" onClick={addReceipt}>
                     New receipt
@@ -234,6 +329,7 @@ export default function App() {
             <Accordion.Item eventKey="2">
               <Accordion.Header>Results</Accordion.Header>
               <Accordion.Body>
+                <h5 className="">Overall grand total: ${overallTotal}</h5>
                 <Table>
                   <thead>
                     <tr>
