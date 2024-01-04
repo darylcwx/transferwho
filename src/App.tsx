@@ -14,6 +14,14 @@ interface Person {
   id: number;
   name: string;
 }
+interface Items {
+  id: number;
+  name: string;
+  price: number;
+}
+interface Participation {
+  [key: string]: Array<string>;
+}
 
 export default function App() {
   const copyToClipboard = () => {
@@ -51,14 +59,32 @@ export default function App() {
     { id: 1, items: [] as Array<object> },
   ]);
   const addReceipt = () => {
-    const lastReceipt = receipts[receipts.length - 1];
-    const newReceipt = { id: lastReceipt.id + 1, items: [] };
+    const newReceiptID =
+      receipts.length === 0 ? 1 : receipts[receipts.length - 1].id + 1;
+    const newReceipt = {
+      id: newReceiptID,
+      items: [],
+      personPaidFirst: undefined,
+      participation: undefined,
+    };
     setReceipts((currentReceipts) => [...currentReceipts, newReceipt]);
-    setKey(lastReceipt.id);
+    setKey(newReceiptID);
   };
-  const changeReceipt = (id: number, items: Array<object>) => {
+  const changeReceipt = (
+    id: number,
+    items: Items[],
+    personPaidFirst: Person,
+    participation: Participation
+  ) => {
     const newReceipts = receipts.map((receipt) =>
-      receipt.id === id ? { ...receipt, items: items } : receipt
+      receipt.id === id
+        ? {
+            ...receipt,
+            items: items,
+            personPaidFirst: personPaidFirst,
+            participation: participation,
+          }
+        : receipt
     );
     setReceipts(newReceipts);
   };
@@ -66,6 +92,7 @@ export default function App() {
     setReceipts((currentReceipts) =>
       currentReceipts.filter((receipt) => receipt.id !== id)
     );
+    setKey(id - 1);
   };
 
   useEffect(() => {
@@ -131,9 +158,7 @@ export default function App() {
               </div>
             </div>
             <div className="mb-3">
-              Optical Character Recognition (OCR) has been implemented. However,
-              I haven't tested with enough receipts. Feel free to send me
-              feedback via Telegram{" "}
+              Feel free to send me feedback via Telegram{" "}
               <a
                 href="https://t.me/damnsope"
                 target="_blank"
@@ -165,25 +190,24 @@ export default function App() {
                   <Button variant="primary" onClick={addPerson}>
                     Add person
                   </Button>
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      console.log(people);
-                    }}>
-                    test
-                  </Button>
                 </div>
               </Accordion.Body>
             </Accordion.Item>
             <Accordion.Item eventKey="1">
               <Accordion.Header>Receipts</Accordion.Header>
               <Accordion.Body>
-                <div className="pb-2">
-                  Please enter all items and their prices before service charge
-                  and GST, <span className="font-medium">for each receipt</span>
-                  .
-                </div>
-                <div className="pb-4">
+                <p className="">
+                  <div>
+                    Please enter all items and their prices before service
+                    charge and GST,{" "}
+                    <span className="font-medium">for each receipt</span>.
+                  </div>
+                  <small className="opacity-75">
+                    Do note that GST of 9% is taxable on both subtotal and
+                    service charge.
+                  </small>
+                </p>
+                <div className="pb-3">
                   <Button className="w-full" onClick={addReceipt}>
                     New receipt
                   </Button>

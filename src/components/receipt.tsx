@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Table from "react-bootstrap/Table";
@@ -11,16 +12,22 @@ interface Items {
   name: string;
   price: number;
 }
-
+interface Participation {
+  [key: string]: Array<string>;
+}
 interface Person {
   id: number;
   name: string;
 }
-
 type ReceiptProps = {
   id: number;
   people: Person[];
-  onChange: (id: number, items: Items[]) => void;
+  onChange: (
+    id: number,
+    items: Items[],
+    personPaidFirst: Person,
+    participation: Participation
+  ) => void;
   onDelete: (id: number) => void;
 };
 
@@ -35,7 +42,9 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
   const [gstBoolean, setGSTBoolean] = useState(true);
   const [gst, setGST] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
+  const [personPaidFirst, setPersonPaidFirst] = useState<Person>();
   const [participation, setParticipation] = useState({});
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   useEffect(() => {
     const newSubtotal = parseFloat(
@@ -60,11 +69,19 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
   }, [items, serviceChargeBoolean, gstBoolean]);
 
   //SECTION - Receipt
+  const handleDeleteReceiptModal = () => {
+    setShowModal(!showModal);
+  };
   const handleDeleteReceipt = () => {
     onDelete(id);
   };
-  const handleChangeReceipt = (items: Items[]) => {
-    onChange(id, items);
+
+  const handleChangeReceipt = (
+    items: Items[],
+    personPaidFirst: Person,
+    participation: Participation
+  ) => {
+    onChange(id, items, personPaidFirst, participation);
   };
 
   //SECTION - Items
@@ -77,17 +94,32 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
       item.id === id ? { ...item, name: newItemName } : item
     );
     setItems(newItems);
-    handleChangeReceipt(newItems);
+    handleChangeReceipt(newItems, personPaidFirst as Person, participation);
   };
   const handleChangeItemPrice = (id: number, newItemPrice: string) => {
     const newItems = items.map((item) =>
       item.id === id ? { ...item, price: parseFloat(newItemPrice) } : item
     );
     setItems(newItems);
-    handleChangeReceipt(newItems);
+    handleChangeReceipt(newItems, personPaidFirst as Person, participation);
   };
   const handleDeleteItem = (id: number, e: React.MouseEvent) => {
     setItems((currentItems) => currentItems.filter((item) => item.id !== id));
+  };
+
+  //SECTION - Person Paid First
+  const handleChangePersonPaidFirst = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const personPaidFirstId = parseInt(e.target.value);
+    let personPaidFirstObject = people.find(
+      (person) => person.id === personPaidFirstId
+    );
+    if (!personPaidFirstObject) {
+      personPaidFirstObject = { id: 1, name: "not found" };
+    }
+    setPersonPaidFirst(personPaidFirstObject);
+    handleChangeReceipt(items, personPaidFirstObject, participation);
   };
 
   //SECTION - Participation
@@ -101,7 +133,6 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
       for (let j = 0; j < items.length; j++) {
         personItems.push(items[j].name);
       }
-      console.log(personItems);
       currentParticipation[person] = personItems;
     }
     setParticipation(currentParticipation);
@@ -117,70 +148,86 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
     } else {
       currentParticipation[personName].push(itemName);
     }
-    console.log(currentParticipation);
     setParticipation(currentParticipation);
+    handleChangeReceipt(items, personPaidFirst as Person, currentParticipation);
   };
 
-  const test = () => {
-    console.log(items);
-  };
-
-  useEffect(() => {
-    //console.log(people);
-  });
   return (
     <>
-      <div className="flex justify-end py-6">
-        <Button variant="outline-danger w-full" onClick={handleDeleteReceipt}>
+      <div className="flex justify-end py-4">
+        <Button
+          variant="outline-danger w-full"
+          onClick={handleDeleteReceiptModal}>
           Delete receipt
         </Button>
       </div>
-      {items.map((item, index) => (
-        <div key={index}>
-          <div className="">
-            <Row>
-              <Col xs="6" sm="7" md="8" lg="9">
-                <InputGroup className="mb-3">
-                  <Form.Control
-                    placeholder="Item name"
-                    value={item.name}
-                    onChange={(e) =>
-                      handleChangeItemName(item.id, e.target.value)
-                    }
-                  />
-                </InputGroup>
-              </Col>
-              <Col>
-                <InputGroup className="mb-3">
-                  <InputGroup.Text>$</InputGroup.Text>
-                  <Form.Control
-                    type="number"
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                    value={item.price || ""}
-                    onChange={(e) =>
-                      handleChangeItemPrice(item.id, e.target.value)
-                    }
-                    disabled={!item.name ? true : false}
-                  />
-                  <Button
-                    variant="outline-danger"
-                    onClick={(e) => handleDeleteItem(item.id, e)}>
-                    –
-                  </Button>
-                </InputGroup>
-              </Col>
-            </Row>
-          </div>
-        </div>
-      ))}
-      <div className="flex justify-end">
-        <Button onClick={handleAddItem}>Add item</Button>
-        <Button onClick={test}>test</Button>
+      <div className="">
+        <Modal
+          className=""
+          dialogClassName="modal-50w"
+          show={showModal}
+          onHide={handleDeleteReceiptModal}
+          centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Are you sure?</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>Data entered will not be saved.</p>
+            <div className="flex justify-end">
+              <Button onClick={handleDeleteReceipt}>Confirm</Button>
+            </div>
+          </Modal.Body>
+        </Modal>
       </div>
-      {/* SECTION - Subtotal, Service Charge, GST, Grand Total */}
-      <div className="py-4">
+
+      {/* SECTION - Items */}
+      <h3 className="">Items</h3>
+      <div className="">
+        {items.map((item, index) => (
+          <div key={index}>
+            <div className="">
+              <Row>
+                <Col xs="6" sm="7" md="8" lg="9">
+                  <InputGroup className="mb-3">
+                    <Form.Control
+                      placeholder="Item name"
+                      value={item.name}
+                      onChange={(e) =>
+                        handleChangeItemName(item.id, e.target.value)
+                      }
+                    />
+                  </InputGroup>
+                </Col>
+                <Col>
+                  <InputGroup className="mb-3">
+                    <InputGroup.Text>$</InputGroup.Text>
+                    <Form.Control
+                      type="number"
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
+                      value={item.price || ""}
+                      onChange={(e) =>
+                        handleChangeItemPrice(item.id, e.target.value)
+                      }
+                      disabled={!item.name ? true : false}
+                    />
+                    <Button
+                      variant="outline-danger"
+                      onClick={(e) => handleDeleteItem(item.id, e)}>
+                      –
+                    </Button>
+                  </InputGroup>
+                </Col>
+              </Row>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-end pb-4">
+        <Button onClick={handleAddItem}>Add item</Button>
+      </div>
+      <div className="">
         <div>
           <Row className="">
             <Col
@@ -272,16 +319,38 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
           </Row>
         </div>
       </div>
-
+      <hr className="border-2" />
+      {/* SECTION - Paid first */}
+      <div className="">
+        <p>
+          <h3 className="">Who paid first?</h3>
+          <div className="">
+            Select the <span className="line-through">sugar daddy</span> person
+            who paid first.
+          </div>
+        </p>
+        <Form.Select
+          className=""
+          onChange={(e) => handleChangePersonPaidFirst(e)}>
+          Select one
+          <option>Select a person</option>
+          {people.map((person, index) => (
+            <option key={index} value={person.id}>
+              {person.name}
+            </option>
+          ))}
+        </Form.Select>
+      </div>
+      <hr className="border-2" />
       {/* SECTION - Participation */}
       <div className="">
         <h3 className="">Participation</h3>
         <Table>
           <thead>
             <tr>
-              <th className="font-semibold">Name</th>
+              <th className="font-semibold pt-0">Name</th>
               {items.map((item, index) => (
-                <th key={index} className="font-semibold">
+                <th key={index} className="font-semibold pt-0">
                   {item.name}
                 </th>
               ))}
