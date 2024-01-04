@@ -196,17 +196,11 @@ export default function App() {
         person.transfer = person.share;
       }
     }
-    console.log(receipts);
-    console.log(temp);
     setResults(temp);
   }, [receipts]);
 
   //SECTION - Results
   const [results, setResults] = useState<Array<any>>([]);
-
-  const test = () => {
-    console.log(receipts);
-  };
 
   //SECTION - Like
   const [message, setMessage] = useState("");
