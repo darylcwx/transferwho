@@ -127,7 +127,7 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
     );
     setItems(newItems);
   };
-  const handleDeleteItem = (id: number, e: React.MouseEvent) => {
+  const handleDeleteItem = (id: number) => {
     setItems((currentItems) => currentItems.filter((item) => item.id !== id));
   };
 
@@ -412,7 +412,7 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
                           type="checkbox"
                           id={person.id.toString() + item.id.toString()}
                           defaultChecked
-                          onChange={(e) => handleCheck(person.name, item.name)}
+                          onChange={() => handleCheck(person.name, item.name)}
                         />
                       </td>
                     )
