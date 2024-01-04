@@ -257,7 +257,7 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
                     />
                     <Button
                       variant="outline-danger"
-                      onClick={(e) => handleDeleteItem(item.id, e)}>
+                      onClick={() => handleDeleteItem(item.id)}>
                       –
                     </Button>
                   </InputGroup>
