@@ -221,7 +221,10 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
       </div>
 
       {/* SECTION - Items */}
-      <h3 className="">Items</h3>
+      <h5 className="">
+        Items
+        <i className="pl-1 bi bi-cart-fill" />
+      </h5>
       <div className="">
         {items.map((item, index) => (
           <div key={index}>
@@ -357,14 +360,13 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
           </Row>
         </div>
       </div>
-      <hr className="border-2" />
+      <hr className="border-2 my-4" />
       {/* SECTION - Paid first */}
       <div className="">
-        <h3 className="">Who paid first?</h3>
-        <p className="">
-          Select the <span className="line-through">sugar daddy</span> person
-          who paid first.
-        </p>
+        <h5 className="">
+          Who paid first?
+          <i className="pl-2 bi bi-credit-card-fill" />
+        </h5>
         <Form.Select
           className=""
           onChange={(e) => handleChangePersonPaidFirst(e)}>
@@ -377,10 +379,16 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
           ))}
         </Form.Select>
       </div>
-      <hr className="border-2" />
+      <hr className="border-2 my-4" />
       {/* SECTION - Participation */}
       <div className="">
-        <h3 className="">Participation</h3>
+        <h5 className="">
+          Participation <i className="bi bi-people-fill" />
+        </h5>
+        <p>
+          For each person, tick their box if they had a share in that particular
+          item.
+        </p>
         <Table>
           <thead>
             <tr>

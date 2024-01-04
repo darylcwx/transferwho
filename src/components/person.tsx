@@ -24,7 +24,7 @@ const Person = ({ id, name, onChange, onDelete }: PersonProps) => {
       <InputGroup className="mb-3">
         <Form.Control placeholder="Name" value={name} onChange={handleChange} />
         <Button variant="outline-danger" onClick={handleDelete}>
-          delete
+          –
         </Button>
       </InputGroup>
     </>

@@ -6,6 +6,9 @@ import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
+import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import Alert from "react-bootstrap/Alert";
 
 import Person from "./components/person";
 import Receipt from "./components/receipt";
@@ -204,6 +207,31 @@ export default function App() {
   const test = () => {
     console.log(receipts);
   };
+
+  //SECTION - Like
+  const [message, setMessage] = useState("");
+  const [likeSuccess, setLikeSuccess] = useState(false);
+  const [likeError, setLikeError] = useState(false);
+  const handleLike = async () => {
+    try {
+      const token = import.meta.env.VITE_TOKEN;
+      const chatID = import.meta.env.VITE_CHAT_ID;
+      const text = encodeURIComponent(
+        `Someone liked your NEW transferwho app!!\nMessage: ${message}`
+      );
+      const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatID}&text=${text}`;
+      fetch(url).then((response) => {
+        if (response.ok) {
+          setLikeSuccess(true);
+        } else {
+          setLikeError(true);
+        }
+      });
+    } catch (error) {
+      setLikeError(true);
+      console.error(error);
+    }
+  };
   return (
     <>
       <div className="bg-gray-800 min-h-screen">
@@ -271,7 +299,7 @@ export default function App() {
                 <i className="bi bi-people-fill"></i>
               </Accordion.Header>
               <Accordion.Body>
-                <p>Please enter the names of all involved.</p>
+                <p>Please enter the names of all persons involved.</p>
                 {people.map((person, index) => (
                   <Person
                     key={index}
@@ -292,15 +320,20 @@ export default function App() {
               <Accordion.Header>Receipts</Accordion.Header>
               <Accordion.Body>
                 <div className="pb-3">
-                  <p>
-                    Please enter all items and their prices before service
-                    charge and GST,{" "}
-                    <span className="font-medium">for each receipt</span>.
-                  </p>
-                  <small className="opacity-75">
-                    Do note that GST of 9% is taxable on both subtotal and
-                    service charge.
-                  </small>
+                  <div>
+                    Please
+                    <ol className="list-disc mb-2">
+                      <li className="">Add new receipts if required</li>
+                      <li className="">
+                        Enter all item names and their prices
+                      </li>
+                      <li className="">Check/uncheck service charge and GST</li>
+                    </ol>
+                    <small className="opacity-75">
+                      Do note that 9% GST is taxable on both subtotal and
+                      service charge.
+                    </small>
+                  </div>
                 </div>
                 <div className="pb-3">
                   <Button className="w-full" onClick={addReceipt}>
@@ -330,7 +363,7 @@ export default function App() {
               <Accordion.Header>Results</Accordion.Header>
               <Accordion.Body>
                 <h5 className="">Overall grand total: ${overallTotal}</h5>
-                <Table>
+                <Table className="pb-5">
                   <thead>
                     <tr>
                       <th>Name</th>
@@ -349,9 +382,40 @@ export default function App() {
                       ))}
                   </tbody>
                 </Table>
-                <div className="flex justify-end">
-                  <Button onClick={test}>test</Button>
-                </div>
+                <Form.Group className="pt-4 pb-2">
+                  <Form.Label htmlFor="message">
+                    If this helped you, please do drop a like!
+                  </Form.Label>
+                  <InputGroup>
+                    {!likeSuccess && !likeError && (
+                      <>
+                        <Form.Control
+                          id="message"
+                          type="text"
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                          placeholder="Optional message or feedback"
+                        />
+
+                        <Button variant="danger" onClick={handleLike}>
+                          <i className="bi bi-heart-fill"></i>
+                        </Button>
+                      </>
+                    )}
+                  </InputGroup>
+                </Form.Group>
+                {likeSuccess && (
+                  <Alert variant="success">
+                    <Alert.Heading>Success!</Alert.Heading>
+                    Message received with thanks!🤩
+                  </Alert>
+                )}
+                {likeError && (
+                  <Alert variant="danger">
+                    <Alert.Heading>Oh no!</Alert.Heading>
+                    Something went wrong, please try again later!
+                  </Alert>
+                )}
               </Accordion.Body>
             </Accordion.Item>
           </Accordion>
