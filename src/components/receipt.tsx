@@ -37,8 +37,8 @@ type ReceiptProps = {
 
 const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
   const [items, setItems] = useState([
-    { id: 1, name: "hahn 1", price: 33.36 },
-    { id: 2, name: "gf ao", price: 10.8 },
+    { id: 1, name: "", price: 0 },
+    { id: 2, name: "", price: 0 },
   ]);
   const [subtotal, setSubtotal] = useState(0);
   const [serviceChargeBoolean, setServiceChargeBoolean] =

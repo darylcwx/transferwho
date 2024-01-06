@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import Tooltip from "react-bootstrap/Tooltip";
 import Accordion from "react-bootstrap/Accordion";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
@@ -39,16 +37,16 @@ interface Receipt {
 export default function App() {
   const copyToClipboard = () => {
     const site = "https://transferwho.vercel.app/";
-    navigator.clipboard.writeText(site);
-    alert("Copied!");
+    navigator.clipboard.writeText(site).then(() => {
+      alert("Copied!");
+    });
   };
   const [key, setKey] = useState(1);
 
   //SECTION - People
   const [people, setPeople] = useState<Person[]>([
-    { id: 1, name: "dar" },
-    { id: 2, name: "ray" },
-    { id: 3, name: "ash" },
+    { id: 1, name: "" },
+    { id: 2, name: "" },
   ]);
   const addPerson = () => {
     const newPerson = { id: Date.now(), name: "" };
@@ -201,7 +199,9 @@ export default function App() {
 
   //SECTION - Results
   const [results, setResults] = useState<Array<any>>([]);
-
+  // const test = () => {
+  //   console.log(results);
+  // };
   //SECTION - Like
   const [message, setMessage] = useState("");
   const [likeSuccess, setLikeSuccess] = useState(false);
@@ -237,26 +237,7 @@ export default function App() {
               friends pay different bills and y'all need to see who owes who how
               much? Looks no further!
             </div>
-            <div className="mb-3">
-              Works best if one person paid for everything first. Or just settle
-              your own receipt and send your friends{" "}
-              <OverlayTrigger
-                key="top"
-                placement="top"
-                overlay={
-                  <Tooltip id="site">
-                    <span>Copy link to clipboard</span>
-                  </Tooltip>
-                }>
-                <a
-                  href=""
-                  onClick={copyToClipboard}
-                  className="text-blue-300 hover:underline no-underline">
-                  this site
-                </a>
-              </OverlayTrigger>
-              . 👀
-            </div>
+
             <div className="mb-3">
               <div>
                 <i className="bi bi-1-circle-fill" />
@@ -274,6 +255,9 @@ export default function App() {
                 <span> See results and profit!!</span>
               </div>
             </div>
+            <Button className="mb-3" onClick={copyToClipboard}>
+              Copy website link <i className="pl-1 bi bi-copy"></i>
+            </Button>
             <div className="mb-3">
               Feel free to send me feedback via Telegram{" "}
               <a
@@ -286,7 +270,7 @@ export default function App() {
               .
             </div>
           </div>
-          <Accordion defaultActiveKey="0" alwaysOpen>
+          <Accordion defaultActiveKey="0" alwaysOpen className="pb-3">
             <Accordion.Item eventKey="0">
               <Accordion.Header>
                 <span className="pr-1">People</span>
@@ -356,6 +340,15 @@ export default function App() {
             <Accordion.Item eventKey="2">
               <Accordion.Header>Results</Accordion.Header>
               <Accordion.Body>
+                {/* <Button onClick={test}>test</Button> */}
+                <div className="opacity-75 pb-3">
+                  If the 'transfer' section is not working, try:
+                  <ol className="list-disc mb-2">
+                    <li className="">Select the person who paid first</li>
+                    <li className="">Don't reuse the same names</li>
+                  </ol>
+                  If that doesn't work, please leave a message below 🥺
+                </div>
                 <h5 className="">Overall grand total: ${overallTotal}</h5>
                 <Table className="pb-5">
                   <thead>
@@ -376,7 +369,7 @@ export default function App() {
                       ))}
                   </tbody>
                 </Table>
-                <Form.Group className="pt-4 pb-2">
+                <Form.Group className="pt-1 pb-1">
                   <Form.Label htmlFor="message">
                     If this helped you, please do drop a like!
                   </Form.Label>
