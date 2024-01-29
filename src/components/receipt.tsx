@@ -156,7 +156,7 @@ const Receipt = ({ id, people, onChange, onDelete }: ReceiptProps) => {
 
   //SECTION - Participation
   useEffect(() => {
-    const currentParticipation = { ...participation } as {
+    const currentParticipation = {} as {
       [key: string]: Array<string>;
     };
     for (let i = 0; i < people.length; i++) {
